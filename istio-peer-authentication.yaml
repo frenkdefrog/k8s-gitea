@@ -1,0 +1,9 @@
+---
+apiVersion: "security.istio.io/v1beta1"
+kind: "PeerAuthentication"
+metadata:
+  name: default # mandatory for a namespace policy
+  namespace: gitea
+spec:
+  mtls:
+    mode: PERMISSIVE #STRICT # in this mode, the service can only accept encrypted traffic

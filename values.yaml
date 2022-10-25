@@ -1,0 +1,48 @@
+image:
+  rootless: true
+  pullPolicy: IfNotPresent
+
+service:
+  ssh:
+    port: 2222
+
+persistence:
+  storageClass: nfs-client-k8sstorage
+  size: 30Gi
+
+postgresql:
+  persistence:
+    size: 4Gi
+    storageClass: nfs-client-k8sstorage
+
+gitea:
+  admin:
+    existingSecret: gitea-admin
+  config:
+    server:
+      DOMAIN: "git.sys.samma.hu"
+      ROOT_URL: https://git.sys.samma.hu
+      SSH_PORT: 2222
+      START_SSH_SERVER: true
+      SSH_LISTEN_PORT: 2222
+      SSH_DOMAIN: "git.sys.samma.hu"
+    service:
+      DISABLE_REGISTRATION: true
+    i18n:
+      LANGS: "en-US,de-DE,hu-HU"
+      NAMES: "English,Deutsch,Magyar"
+    mailer: 
+      ENABLED: true
+      HELO_HOSTNAME: "mail.webandservice.hu"
+      HOST: "mail.webandservice.hu:587"
+      IS_TLS_ENABLED: false
+      FROM: "Gitea - Ocsipc <noreply@webandservice.hu>"
+      ENVELOPE_FROM: "<>"
+      USER: "noreply@webandservice.hu"
+      SUBJECT_PREFIX: "GIT - "
+  additionalConfigFromEnvs:
+    - name: ENV_TO_INI__CONFIG__MAILER__PASSWD
+      valueFrom:
+        secretKeyRef:
+          name: gitea-config-mailer-passwd
+          key: password

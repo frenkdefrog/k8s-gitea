@@ -1,0 +1,60 @@
+---
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: gitea-gateway
+spec:
+  selector:
+    istio: ingressgateway # use istio default ingress gateway
+  servers:
+    - port:
+        number: 80
+        name: http
+        protocol: HTTP
+      hosts:
+        - "git.sys.samma.hu"
+      tls:
+        httpsRedirect: true
+    - port:
+        number: 443
+        name: https
+        protocol: HTTPS
+      hosts:
+        - "git.sys.samma.hu"
+      tls:
+        mode: SIMPLE
+        credentialName: git-letsencrypt-crt-secret
+    - port:
+        number: 2222
+        name: gitea-ssh
+        protocol: TCP
+      hosts:
+        - "git.sys.samma.hu"
+
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: gitea-virtual-service
+spec:
+  # the destination hosts to which traffic is being sent
+  hosts:
+    - "git.sys.samma.hu"
+  # the name of gateway and sidecar that should apply the route
+  gateways:
+    - gitea-gateway
+  http:
+    - route:
+      - destination:
+          host: gitea-http.gitea.svc.cluster.local
+          port:
+            number: 3000
+  tcp:
+  - match:
+    - port: 2222
+    route:
+      - destination:
+          host: gitea-ssh.gitea.svc.cluster.local
+          port:
+            number: 2222
+
